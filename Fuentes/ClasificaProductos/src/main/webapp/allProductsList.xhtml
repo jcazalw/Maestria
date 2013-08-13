@@ -1,0 +1,109 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	template="/template/main.xhtml">
+
+	<ui:define name="body">
+		<h:form>
+			<p:toolbar>
+				<p:toolbarGroup align="left">
+					<p:commandButton title="#{messages['button.delete']}"
+						icon="ui-icon-trash" onclick="confirmation.show()" type="button"
+						immediate="true" ajax="false" />
+					<!-- Suspender -->
+					<p:confirmDialog message="Suspender Producto"
+						showEffect="bounce" hideEffect="explode"
+						header="#{messages['label.dialog.alert']}!" severity="alert"
+						widgetVar="confirmation">
+
+						<h:commandButton value="#{messages['button.dialog.yes']}"
+							action="#{migraProductosListMB.setEstadoProducto('S')}"
+							actionListener="#{migraProductosListMB.clear}" />
+						<h:commandButton value="#{messages['button.dialog.no']}"
+							onclick="confirmation.hide()" type="button" />
+					</p:confirmDialog>
+					
+					<!-- Habilitar Producto -->
+					<p:commandButton title="Habilitar"
+						icon="ui-icon-circle-check" onclick="habilitar.show()" type="button"
+						immediate="true" ajax="false" />
+
+					<p:confirmDialog message="Suspender Producto"
+						showEffect="bounce" hideEffect="explode"
+						header="#{messages['label.dialog.alert']}!" severity="alert"
+						widgetVar="habilitar">
+
+						<h:commandButton value="#{messages['button.dialog.yes']}"
+							action="#{migraProductosListMB.setEstadoProducto('N')}"
+							actionListener="#{migraProductosListMB.clear}" />
+						<h:commandButton value="#{messages['button.dialog.no']}"
+							onclick="habilitar.hide()" type="button" />
+					</p:confirmDialog>
+					
+					<!-- Descategorizar Producto -->
+					<p:commandButton title="Descategorizar"
+						icon="ui-icon-arrowrefresh-1-w" onclick="descateg.show()" type="button"
+						immediate="true" ajax="false" />
+
+					<p:confirmDialog message="Descategorizar Producto"
+						showEffect="bounce" hideEffect="explode"
+						header="#{messages['label.dialog.alert']}!" severity="alert"
+						widgetVar="descateg">
+
+						<h:commandButton value="#{messages['button.dialog.yes']}"
+							action="#{migraProductosListMB.descategorizar()}"
+							actionListener="#{migraProductosListMB.clear}"	/>
+						<h:commandButton value="#{messages['button.dialog.no']}"
+							onclick="descateg.hide()" type="button" />
+					</p:confirmDialog>
+				</p:toolbarGroup>
+			</p:toolbar>
+
+			<p:dataTable id="list" style="width:80%;" var="bean"
+				value="#{migraProductosListMB.resultList}" paginator="true"
+				rows="10"
+				paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+				rowsPerPageTemplate="5,10,15">
+				<f:facet name="header">Lista de Productos</f:facet>
+				<p:column style="width:5%;">
+					<f:facet name="header">
+						<h:selectBooleanCheckbox class="group-checkable"
+							data-set="#j_idt15:availableList_data .checkboxes"
+							valueChangeListener="#{migraProductosListMB.valueChangeMethod}" />
+					</f:facet>
+					<h:selectBooleanCheckbox
+						value="#{migraProductosListMB.selection[bean.codigoNum]}" />
+				</p:column>
+				<p:column style="width:5%;" sortBy="#{bean.codigoNum}">
+					<f:facet name="header">id</f:facet>
+					<h:outputText value="#{bean.codigoNum}" />
+				</p:column>
+				<p:column sortBy="#{bean.descripcion}"
+					filterBy="#{bean.descripcion}" filterMatchMode="contains">
+					<f:facet name="header">Descripcion</f:facet>
+					<h:outputText value="#{bean.descripcion}" />
+				</p:column>
+				<p:column sortBy="#{bean.artiFamiDesc}"
+					filterBy="#{bean.artiFamiDesc}" filterMatchMode="contains">
+					<f:facet name="header">Familia</f:facet>
+					<h:outputText value="#{bean.artiFamiDesc}" />
+				</p:column>
+				<p:column style="width:5%;" sortBy="#{bean.suspendido}">
+					<f:facet name="header">Suspendido</f:facet>
+					<h:outputText value="#{bean.suspendido}" />
+				</p:column>
+			</p:dataTable>
+		</h:form>
+		<script type="text/javascript">
+			// When the document ready
+			$(document).ready(function() {
+				$('th input:checkbox').click(function(e) {
+					var table = $(e.target).parents('table:first');
+					$('td input:checkbox', table).attr('checked', e.target.checked);
+				});
+			});
+		</script>
+	</ui:define>
+</ui:composition>

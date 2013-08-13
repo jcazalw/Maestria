@@ -1,0 +1,147 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	template="/template/main.xhtml">
+
+	<ui:define name="body">
+		<h:form>
+			<p:toolbar>
+				<p:toolbarGroup align="left">
+					<p:commandButton title="#{messages['button.new']}"
+						icon="ui-icon-document" disabled="true"
+						action="#{migraProductosListMB.getNextView}"
+						actionListener="#{migraProductosListMB.clear}" ajax="false" />
+
+					<p:commandButton title="#{messages['button.delete']}"
+						icon="ui-icon-trash" onclick="confirmation.show()" type="button"
+						immediate="true" ajax="false" />
+
+					<p:commandButton title="Agregar Productos" icon="ui-icon-plusthick"
+						onclick="confirmation.show()" type="button" immediate="true"
+						ajax="false" />
+
+					<p:confirmDialog message="#{messages['label.confirm.delete']}"
+						showEffect="bounce" hideEffect="explode" 
+						header="#{messages['label.dialog.alert']}!" severity="alert"
+						widgetVar="confirmation">
+						<h:commandButton value="#{messages['button.dialog.yes']}"						
+							action="#{migraProductosListMB.addToDropped()}"							
+							actionListener="#{migraProductosListMB.clear}" />
+						<h:commandButton value="#{messages['button.dialog.no']}"
+							onclick="confirmation.hide()" type="button" />
+					</p:confirmDialog>
+
+					<p:commandButton title="Asociar Categoria" value="Asociar" icon="ui-icon-check"
+						immediate="true" ajax="false"
+						action="#{migraProductosListMB.categorizarProducto()}" />
+				</p:toolbarGroup>
+			</p:toolbar>
+			<p:spacer width="20" height="20" />
+			<!-- Seleccionar Categoria  -->
+			<style>
+table {
+	font-size: 12px;
+}
+
+span {
+	font-size: 14px;
+}
+</style>
+			<table>
+				<tr>
+					<td width="20%" height="100%"><p:fieldset
+							legend="Categorias Disponibles">
+
+							<p:tree id="treeSingle"
+								value="#{migraProductosListMB.categoriesTree}" var="node"
+								selectionMode="single"
+								selection="#{migraProductosListMB.selectedNode}">
+								<p:ajax listener="#{migraProductosListMB.onNodeSelect}"
+									event="select" />
+								<p:treeNode style="height:100%; width:100%;">
+									<h:outputText value="#{node}" />
+								</p:treeNode>
+							</p:tree>
+					</p:fieldset></td>			
+					<td width="80%" height="100%">
+					<p:dataTable id="availableList"
+							var="bean" value="#{migraProductosListMB.notCategorizedList}"
+							paginator="true" rows="10"
+							paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+							rowsPerPageTemplate="5,10,15">
+							<!-- 				<f:facet name="header">#{messages['bookmark.list.table.title']}</f:facet> -->
+
+							<f:facet name="header">Lista de Productos</f:facet>
+
+							<p:column style="width:5%;" >
+								<f:facet name="header">
+									<h:selectBooleanCheckbox class="group-checkable" data-set="#j_idt15:availableList_data .checkboxes" valueChangeListener="#{migraProductosListMB.valueChangeMethod}"/>								
+								</f:facet>
+								<h:selectBooleanCheckbox class="checkboxes" 
+									value="#{migraProductosListMB.selection[bean.codigoNum]}" />
+							</p:column>
+							<p:column style="width:20px">
+								<h:outputText id="dragIcon" styleClass="ui-icon ui-icon-arrow-4" />
+								<p:draggable for="dragIcon" revert="true" />
+							</p:column>
+							<p:column style="width:5%;" sortBy="#{bean.codigoNum}">
+								<!-- 					<f:facet name="header">#{messages['bookmark.label.id']}</f:facet> -->
+								<f:facet name="header">Código</f:facet>
+								<h:outputText value="#{bean.codigoNum}" id="otCod" />
+								<p:draggable for="otCod" revert="true"
+									handle=".ui-panel-titlebar" stack=".ui-panel" />
+							</p:column>
+							<p:column sortBy="#{bean.descripcion}" filterBy="#{bean.descripcion}" filterMatchMode="contains"  filterByFieldSize="120" >
+								<!-- 					<f:facet name="header">#{messages['bookmark.label.description']}</f:facet> -->
+								<f:facet name="header">Descripcion</f:facet>
+								<h:commandLink action="#{migraProductosListMB.getNextView}"
+									actionListener="#{migraProductosListMB.clear}">
+									<h:outputText value="#{bean.descripcion}" />
+									<f:param name="id" value="#{bean.codigoNum}" />
+								</h:commandLink>
+							</p:column>
+						</p:dataTable></td>
+				</tr>
+			</table>
+			<hr />
+			<p:fieldset id="selectedProducts" legend="Tire Aqui">
+				<p:outputPanel id="dropArea">
+					<p:commandButton title="Reset Productos" value="Borrar"
+						immediate="true" ajax="false"
+						rendered="#{not empty migraProductosListMB.droppedProducts}"
+						action="#{migraProductosListMB.resetDroppedList()}" />
+					<p:dataTable var="dropedBean"
+						value="#{migraProductosListMB.droppedProducts}"
+						rendered="#{not empty migraProductosListMB.droppedProducts}">
+
+						<p:column headerText="Código">
+							<h:outputText value="#{dropedBean.codigoNum}" />
+						</p:column>
+
+						<p:column headerText="Descripcion">
+							<h:outputText value="#{dropedBean.descripcion}" />
+						</p:column>
+					</p:dataTable>
+				</p:outputPanel>
+			</p:fieldset>
+			<p:droppable for="selectedProducts" tolerance="touch"
+				activeStyleClass="ui-state-highlight" datasource="availableList">
+				<!-- 				onDrop="handleDrop"> -->
+				<p:ajax listener="#{migraProductosListMB.onItemDrop}"
+					update="dropArea availableList" />
+			</p:droppable>
+
+		</h:form>
+		<script type="text/javascript">
+			// When the document ready
+			$(document).ready(function() {
+				$('th input:checkbox').click(function(e) {
+					var table = $(e.target).parents('table:first');
+					$('td input:checkbox', table).attr('checked', e.target.checked);
+				});
+			});
+		</script>
+	</ui:define>
+</ui:composition>
